@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSP21 Mooca • Central de Nodos & Report Operacional</title>
+<style>
+:root{
+  --meli-yellow:#FFE600; --meli-blue:#3483FA; --meli-navy:#2D3277;
+  --bg:#f3f4f6; --card:#fff; --text:#252525; --muted:#6b7280;
+  --green:#00a650; --red:#f23d4f; --orange:#f5a400; --line:#e5e7eb;
+  --shadow:0 8px 24px rgba(45,50,119,.10);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.topbar{background:var(--meli-yellow);min-height:72px;padding:12px 22px;display:flex;align-items:center;gap:18px;position:sticky;top:0;z-index:20;box-shadow:0 2px 10px #0001}
+.brand{display:flex;align-items:center;gap:12px;min-width:250px}
+.brandMark{width:48px;height:34px;border:3px solid var(--meli-navy);border-radius:50%;display:grid;place-items:center;font-size:20px;background:#fff}
+.brand strong{font-size:18px;color:var(--meli-navy)}
+.brand small{display:block;color:#111;font-weight:700;margin-top:2px}
+.search{flex:1;max-width:650px;position:relative}
+.search input{width:100%;padding:13px 18px;border:0;border-radius:8px;outline:0;box-shadow:0 2px 8px #0002}
+.topActions{margin-left:auto;display:flex;gap:8px}
+.btn{border:0;border-radius:8px;padding:10px 14px;font-weight:700}
+.btn-primary{background:var(--meli-blue);color:#fff}.btn-primary:hover{background:#2968c8}
+.btn-light{background:#fff;color:var(--meli-navy)}.btn-dark{background:var(--meli-navy);color:#fff}
+.btn-green{background:var(--green);color:#fff}.btn-danger{background:var(--red);color:#fff}
+.layout{display:flex;min-height:calc(100vh - 72px)}
+.sidebar{width:245px;background:#fff;border-right:1px solid var(--line);padding:18px 12px;position:sticky;top:72px;height:calc(100vh - 72px)}
+.navbtn{width:100%;text-align:left;border:0;background:#fff;padding:13px 14px;border-radius:9px;margin:3px 0;font-weight:700;color:#374151}
+.navbtn:hover,.navbtn.active{background:#fff9cc;color:var(--meli-navy)}
+.navbtn.active{border-left:4px solid var(--meli-blue)}
+.sidebar .label{font-size:11px;text-transform:uppercase;color:#9ca3af;font-weight:800;padding:16px 14px 6px}
+.main{flex:1;padding:22px;min-width:0}
+.page{display:none}.page.active{display:block}
+.pageTitle{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.pageTitle h1{margin:0;font-size:25px;color:var(--meli-navy)}.pageTitle p{margin:4px 0 0;color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:14px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:17px}
+.kpi{font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase}.value{font-size:27px;font-weight:900;margin-top:7px;color:var(--meli-navy)}
+.grid2{display:grid;grid-template-columns:1.35fr .65fr;gap:16px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:16px;margin-bottom:16px}
+.panel h3{margin:0 0 12px;color:var(--meli-navy)}
+.tableWrap{overflow:auto;max-height:560px;border:1px solid var(--line);border-radius:9px}
+table{border-collapse:collapse;width:100%;min-width:900px;background:#fff}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);font-size:12px;text-align:left;white-space:nowrap}
+th{background:#f8fafc;color:#374151;position:sticky;top:0;z-index:2}
+tr:hover td{background:#f9fbff}
+.badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800}
+.badge-green{background:#e8f7ef;color:#08783e}.badge-red{background:#ffe8eb;color:#b42332}
+.badge-orange{background:#fff1d6;color:#9a5b00}.badge-blue{background:#eaf2ff;color:#205fc7}
+.filters{display:grid;grid-template-columns:repeat(5,minmax(140px,1fr));gap:9px;margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:800;color:#6b7280;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;border:1px solid #d1d5db;border-radius:8px;padding:10px;background:#fff;outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--meli-blue);box-shadow:0 0 0 3px #3483fa22}
+.contactCard{display:grid;grid-template-columns:1fr auto;gap:10px;border:1px solid var(--line);border-radius:10px;padding:13px;margin-bottom:9px}
+.contactMain strong{color:var(--meli-navy)}.contactMain div{font-size:12px;color:#4b5563;margin-top:3px}
+.contactActions{display:flex;gap:6px;align-items:center}
+.small{font-size:11px;color:var(--muted)}
+.empty{text-align:center;padding:35px;color:#9ca3af}
+.notice{background:#fff9cc;border:1px solid #f2df65;padding:11px;border-radius:9px;color:#5b5200;font-size:12px;margin-bottom:12px}
+textarea{min-height:180px;resize:vertical}
+.modal{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+.modal.show{display:flex}
+.modalBox{background:#fff;width:min(720px,100%);max-height:90vh;overflow:auto;border-radius:14px;padding:20px;box-shadow:0 25px 70px #0005}
+.modalHead{display:flex;justify-content:space-between;align-items:center}.modalHead h2{margin:0;color:var(--meli-navy)}
+.formGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin-top:15px}
+.formGrid .full{grid-column:1/-1}
+.modalFoot{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
+.toast{position:fixed;right:20px;bottom:20px;background:#111827;color:#fff;padding:12px 16px;border-radius:9px;opacity:0;transform:translateY(10px);transition:.2s;z-index:100}
+.toast.show{opacity:1;transform:translateY(0)}
+.report{background:#fff;padding:22px;border-radius:12px}
+.reportHead{display:flex;justify-content:space-between;border-bottom:2px solid var(--meli-yellow);padding-bottom:12px;margin-bottom:15px}
+.reportTitle{font-size:23px;font-weight:900;color:var(--meli-navy)}
+.nodeGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.nodeCard{border:1px solid var(--line);border-radius:11px;padding:13px;background:#fff}
+.nodeCard .node{font-weight:900;color:var(--meli-navy);font-size:17px}
+.nodeMeta{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:9px}
+.nodeMeta div{background:#f7f8fa;padding:8px;border-radius:7px}.nodeMeta b{display:block;font-size:16px}
+@media(max-width:1100px){.cards{grid-template-columns:repeat(3,1fr)}.grid2{grid-template-columns:1fr}.sidebar{width:205px}.nodeGrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:800px){.layout{display:block}.sidebar{width:100%;height:auto;position:static;display:flex;overflow:auto}.sidebar .label{display:none}.navbtn{min-width:170px}.cards{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:repeat(2,1fr)}.nodeGrid{grid-template-columns:1fr}.formGrid{grid-template-columns:1fr}.topActions{display:none}}
+@media print{
+ body{background:#fff}.topbar,.sidebar,.pageTitle,.noPrint{display:none!important}.layout{display:block}.main{padding:0}.page{display:none!important}.page.printPage{display:block!important}.report{box-shadow:none;border:0}
+}
+</style>
+</head>
+<body>
+<header class="topbar noPrint">
+  <div class="brand">
+    <div class="brandMark">🤝</div>
+    <div><strong>Mercado Livre</strong><small>SSP21 • MOOCA</small></div>
+  </div>
+  <div class="search"><input id="globalSearch" placeholder="Buscar nodo, rota, transportadora, contato..." oninput="renderAll()"></div>
+  <div class="topActions">
+    <button class="btn btn-light" onclick="openContact()">+ Contato</button>
+    <button class="btn btn-dark" onclick="backup()">Backup</button>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="sidebar noPrint">
+  <div class="label">Operação</div>
+  <button class="navbtn active" data-page="rotas">📦 Nodos & Rotas</button>
+  <button class="navbtn" data-page="dashboard">📊 Dashboard Operacional</button>
+  <div class="label">Banco de dados</div>
+  <button class="navbtn" data-page="rotadb">🗃️ Banco de Rotas</button>
+  <button class="navbtn" data-page="contatos">☎️ Banco de Contatos</button>
+  <div class="label">Gestão</div>
+  <button class="navbtn" data-page="importar">⬆️ Importar / Exportar</button>
+</aside>
+
+<main class="main">
+<section id="page-rotas" class="page active">
+  <div class="pageTitle">
+    <div><h1>Central de Nodos & Rotas</h1><p>SSP21 Mooca • cruzamento automático entre rota e contato do nodo destino</p></div>
+    <div class="noPrint"><button class="btn btn-primary" onclick="go('rotadb')">+ Carregar banco de rotas</button></div>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="kpi">Rotas analisadas</div><div class="value" id="kRotas">0</div></div>
+    <div class="card"><div class="kpi">Nodos destino</div><div class="value" id="kNodos">0</div></div>
+    <div class="card"><div class="kpi">Insucessos</div><div class="value" id="kFalhas">0</div></div>
+    <div class="card"><div class="kpi">Pendentes</div><div class="value" id="kPend">0</div></div>
+    <div class="card"><div class="kpi">Dias fora da base</div><div class="value" id="kDias">0</div></div>
+  </div>
+
+  <div class="panel noPrint">
+    <div class="filters">
+      <div class="field"><label>Nodo destino</label><input id="fNodo" oninput="renderAll()" placeholder="Ex.: BRNSP1567"></div>
+      <div class="field"><label>Ciclo</label><select id="fCiclo" onchange="renderAll()"><option value="">Todos</option></select></div>
+      <div class="field"><label>Status da rota</label><select id="fStatus" onchange="renderAll()"><option value="">Todos</option><option>close</option><option>active</option><option>return to station</option></select></div>
+      <div class="field"><label>Transportadora</label><input id="fTrans" oninput="renderAll()" placeholder="Ex.: Envios Extra"></div>
+      <div class="field"><label>Ordenar nodos</label><select id="fSort" onchange="renderAll()"><option value="falhas">Mais insucessos</option><option value="dias">Mais dias fora</option><option value="pend">Mais pendentes</option><option value="rotas">Mais rotas</option><option value="node">Nodo A-Z</option></select></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>📍 Nodos com maior impacto operacional</h3>
+    <div id="nodeGrid" class="nodeGrid"></div>
+  </div>
+
+  <div class="panel">
+    <h3>Detalhamento das rotas</h3>
+    <div class="tableWrap"><table><thead><tr>
+      <th>Rota</th><th>Prefixo</th><th>Transportadora</th><th>Ciclo</th><th>Status</th><th>Nodo destino</th><th>Dias fora</th><th>Volume</th><th>Entregues</th><th>Insucessos</th><th>Pendentes</th><th>Contato</th>
+    </tr></thead><tbody id="routeTable"></tbody></table></div>
+  </div>
+</section>
+
+<section id="page-dashboard" class="page">
+  <div class="pageTitle noPrint"><div><h1>Dashboard Operacional</h1><p>Resumo para report ao time • SSP21 Mooca</p></div></div>
+  <div id="reportArea" class="report printPage">
+    <div class="reportHead"><div><div class="reportTitle">SSP21 • MOOCA — REPORT OPERACIONAL NEx | DC</div><div class="small" id="reportDate"></div></div><div><b>Central de Nodos</b></div></div>
+    <div class="cards">
+      <div class="card"><div class="kpi">Rotas</div><div class="value" id="dRotas">0</div></div>
+      <div class="card"><div class="kpi">Volume</div><div class="value" id="dVol">0</div></div>
+      <div class="card"><div class="kpi">Entregues</div><div class="value" id="dEnt">0</div></div>
+      <div class="card"><div class="kpi">Insucessos</div><div class="value" id="dFal">0</div></div>
+      <div class="card"><div class="kpi">Pendentes</div><div class="value" id="dPen">0</div></div>
+    </div>
+    <div class="panel"><h3>📌 Pontos para tratativa</h3><div id="reportNodes" class="nodeGrid"></div></div>
+    <div class="panel"><h3>☎️ Contatos dos nodos</h3><div class="tableWrap"><table><thead><tr><th>Nodo</th><th>Responsável</th><th>Telefone</th><th>Endereço</th><th>Operação sábado</th><th>Rotas</th><th>Insucessos</th><th>Dias fora</th></tr></thead><tbody id="reportContacts"></tbody></table></div></div>
+  </div>
+</section>
+
+<section id="page-rotadb" class="page">
+  <div class="pageTitle"><div><h1>Banco de Dados • Rotas</h1><p>Cole diretamente as colunas da planilha de rotas. O sistema guarda tudo no navegador.</p></div></div>
+  <div class="notice">Formato recomendado: cole o cabeçalho e as linhas separadas por TAB, exatamente como sai do Google Sheets/Excel. Também aceita CSV com vírgula ou ponto e vírgula.</div>
+  <div class="panel" id="routeImportPanel">
+    <div class="field"><label>Dados da rota</label><textarea id="routeImport" placeholder="ID_ROTA	PREFIXO_ROTA	TRANSPORTADORA	CICLO	STATUS_ROTA	FACILITY_ORIG	NODO_DESTINO	DIAS_DESDE_S..."></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="importRoutes()">Importar / substituir banco</button>
+      <button class="btn btn-light" onclick="appendRoutes()">Adicionar ao banco atual</button>
+      <button class="btn btn-danger" onclick="clearRoutes()">Limpar banco de rotas</button>
+    </div>
+  </div>
+  <div class="panel" id="routeDatabaseActions" hidden>
+    <button class="btn btn-light" onclick="clearAndEditRoutes()">Limpar e editar banco de dados</button>
+  </div>
+  <div class="panel"><h3>Colunas reconhecidas</h3><p class="small">ID_ROTA • PREFIXO_ROTA • TRANSPORTADORA • CICLO • STATUS_ROTA • FACILITY_ORIG • NODO_DESTINO • DIAS_DESDE_* • SPR_VOLUME • ENTREGUES • FALHAS_DE_* • PENDENTES</p></div>
+  <div class="panel"><h3>Banco atual</h3><div class="tableWrap"><table><thead><tr><th>ID rota</th><th>Nodo</th><th>Ciclo</th><th>Status</th><th>Dias</th><th>Volume</th><th>Entregues</th><th>Falhas</th><th>Pendentes</th></tr></thead><tbody id="dbRouteTable"></tbody></table></div></div>
+</section>
+
+<section id="page-contatos" class="page">
+  <div class="pageTitle"><div><h1>Banco de Contatos dos Nodos</h1><p>Importação massiva, cadastro individual, edição e exclusão.</p></div>
+    <button class="btn btn-primary" onclick="openContact()">+ Novo contato</button>
+  </div>
+  <div class="panel noPrint" id="contactImportPanel">
+    <div class="field"><label>Importação massiva</label><textarea id="contactImport" placeholder="94	PLACE	DC	CEP	Modal	Endereço	Complemento	Bairro	Telefone	Responsável	Opera de sábado?"></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-primary" onclick="importContacts()">Importar contatos</button><button class="btn btn-light" onclick="appendContacts()">Adicionar aos contatos</button><button class="btn btn-danger" onclick="clearContacts()">Limpar contatos</button></div>
+  </div>
+  <div class="panel" id="contactDatabaseActions" hidden>
+    <button class="btn btn-light" onclick="clearAndEditContacts()">Limpar e editar banco de dados</button>
+  </div>
+  <div class="panel">
+    <div class="field"><label>Buscar contato</label><input id="contactSearch" oninput="renderContacts()" placeholder="Nodo, loja, responsável, telefone..."></div>
+    <div id="contactList" style="margin-top:12px"></div>
+  </div>
+</section>
+
+<section id="page-importar" class="page">
+  <div class="pageTitle"><div><h1>Importar / Exportar</h1><p>Backup completo para trocar de computador sem perder o banco local.</p></div></div>
+  <div class="panel">
+    <h3>💾 Backup</h3><p class="small">Baixe um arquivo JSON com rotas e contatos. Depois, use-o para restaurar todo o sistema.</p>
+    <button class="btn btn-primary" onclick="backup()">Baixar backup completo</button>
+    <label class="btn btn-light" style="display:inline-block">Restaurar backup <input type="file" accept=".json" onchange="restore(event)" hidden></label>
+  </div>
+  <div class="panel">
+    <h3>📊 Exportações</h3>
+    <button class="btn btn-dark" onclick="exportCSV('routes')">Exportar rotas CSV</button>
+    <button class="btn btn-dark" onclick="exportCSV('contacts')">Exportar contatos CSV</button>
+  </div>
+  <div class="panel">
+    <h3>🔐 Armazenamento</h3>
+    <p>Os dados ficam no <b>localStorage</b> deste navegador. Não são enviados para servidor por este arquivo.</p>
+    <p class="small">Para usar em outro computador, faça o backup e restaure o JSON.</p>
+  </div>
+</section>
+</main>
+</div>
+
+<div class="modal" id="contactModal">
+ <div class="modalBox">
+  <div class="modalHead"><h2 id="modalTitle">Novo contato</h2><button class="btn btn-light" onclick="closeModal()">✕</button></div>
+  <input type="hidden" id="editIndex">
+  <div class="formGrid">
+   <div class="field"><label>PLACE</label><input id="cPlace"></div>
+   <div class="field"><label>DC / NODO *</label><input id="cDC" required></div>
+   <div class="field"><label>CEP</label><input id="cCep"></div>
+   <div class="field"><label>Modal</label><input id="cModal"></div>
+   <div class="field full"><label>Endereço</label><input id="cEndereco"></div>
+   <div class="field"><label>Complemento</label><input id="cComplemento"></div>
+   <div class="field"><label>Bairro</label><input id="cBairro"></div>
+   <div class="field"><label>Telefone</label><input id="cTelefone"></div>
+   <div class="field"><label>Responsável</label><input id="cResponsavel"></div>
+   <div class="field"><label>Opera de sábado?</label><input id="cSabado"></div>
+  </div>
+  <div class="modalFoot"><button class="btn btn-light" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveContact()">Salvar contato</button></div>
+ </div>
+</div>
+<div class="modal" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+ <div class="modalBox" style="max-width:460px">
+  <div class="modalHead"><h2 id="confirmTitle">Confirmar exclusão</h2><button class="btn btn-light" onclick="closeConfirmModal()">✕</button></div>
+  <p id="confirmMessage" style="line-height:1.5;color:#4b5563;margin:16px 0"></p>
+  <div class="modalFoot"><button class="btn btn-light" onclick="closeConfirmModal()">Cancelar</button><button class="btn btn-danger" onclick="confirmModalAction()">Confirmar exclusão</button></div>
+ </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEYS={routes:'ssp21_routes_v1',contacts:'ssp21_contacts_v1',routesImported:'ssp21_routes_imported_v1',contactsImported:'ssp21_contacts_imported_v1'};
+let routes=JSON.parse(localStorage.getItem(KEYS.routes)||'[]');
+let contacts=JSON.parse(localStorage.getItem(KEYS.contacts)||'[]');
+let routesImported=localStorage.getItem(KEYS.routesImported)==='1';
+let contactsImported=localStorage.getItem(KEYS.contactsImported)==='1';
+let pendingConfirmAction=null;
+
+const norm=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
+const num=s=>{let x=String(s??'').replace(/[^0-9,.-]/g,'').replace(',','.'); let n=parseFloat(x); return isNaN(n)?0:n};
+function save(){localStorage.setItem(KEYS.routes,JSON.stringify(routes));localStorage.setItem(KEYS.contacts,JSON.stringify(contacts));}
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2400)}
+function go(page){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('page-'+page).classList.add('active');document.querySelectorAll('.navbtn').forEach(x=>x.classList.toggle('active',x.dataset.page===page));renderAll()}
+document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>go(b.dataset.page));
+
+function splitLine(line){
+  if(line.includes('\t')) return line.split('\t');
+  if(line.includes(';')) return line.split(';');
+  return line.split(',');
+}
+function parseTable(text){
+  const lines=text.replace(/\r/g,'').split('\n').filter(x=>x.trim());
+  if(!lines.length)return [];
+  const headers=splitLine(lines[0]).map((h,i)=>norm(h)||('col_'+i));
+  return lines.slice(1).map(line=>{
+    const a=splitLine(line); const o={};
+    headers.forEach((h,i)=>o[h]=String(a[i]??'').trim());
+    return o;
+  });
+}
+function pick(o, tests, fallback=''){
+  const keys=Object.keys(o);
+  for(const t of tests){const k=keys.find(x=>x===norm(t)||x.includes(norm(t)));if(k && o[k]!==undefined)return o[k]}
+  return fallback;
+}
+function normalizeRoute(o){
+ return {
+  id:pick(o,['id_rota','id rota','rota']),
+  prefixo:pick(o,['prefixo_rota','prefixo rota','prefixo']),
+  transportadora:pick(o,['transportadora']),
+  ciclo:pick(o,['ciclo']),
+  status:pick(o,['status_rota','status rota','status']),
+  facility:pick(o,['facility_orig','facility origin','facility']),
+  nodo:pick(o,['nodo_destino','nodo destin','nodo destino','dc']),
+  dias:num(pick(o,['dias_desde_saida','dias_desde','dias desde','dias'])),
+  volume:num(pick(o,['spr_volume','spr volume','volume'])),
+  entregues:num(pick(o,['entregues','entregue'])),
+  falhas:num(pick(o,['falhas_de_entrega','falhas_de','falhas','insucessos','insucesso'])),
+  pendentes:num(pick(o,['pendentes','pendente'])),
+  raw:o
+ }
+}
+function normalizeContact(o){
+ return {
+  place:pick(o,['place','loja']),
+  dc:pick(o,['dc','nodo','nodo destino']),
+  cep:pick(o,['cep']),
+  modal:pick(o,['modal']),
+  endereco:pick(o,['endereco','endereço']),
+  complemento:pick(o,['complemento']),
+  bairro:pick(o,['bairro']),
+  telefone:pick(o,['telefone','tel']),
+  responsavel:pick(o,['responsavel','responsável']),
+  sabado:pick(o,['opera de sabado','opera de sábado','sabado','sábado']),
+  raw:o
+ }
+}
+function updateDatabasePanels(){
+ const routePanel=document.getElementById('routeImportPanel');const routeActions=document.getElementById('routeDatabaseActions');
+ const contactPanel=document.getElementById('contactImportPanel');const contactActions=document.getElementById('contactDatabaseActions');
+ if(routePanel)routePanel.hidden=routesImported;if(routeActions)routeActions.hidden=!routesImported;
+ if(contactPanel)contactPanel.hidden=contactsImported;if(contactActions)contactActions.hidden=!contactsImported;
+}
+function importRoutes(){const a=parseTable(document.getElementById('routeImport').value).map(normalizeRoute).filter(x=>x.id||x.nodo);routes=a;save();if(a.length){routesImported=true;localStorage.setItem(KEYS.routesImported,'1')}toast(a.length+' rotas importadas');renderAll()}
+function appendRoutes(){const a=parseTable(document.getElementById('routeImport').value).map(normalizeRoute).filter(x=>x.id||x.nodo);routes.push(...a);save();if(a.length){routesImported=true;localStorage.setItem(KEYS.routesImported,'1')}toast(a.length+' rotas adicionadas');renderAll()}
+function importContacts(){const a=parseTable(document.getElementById('contactImport').value).map(normalizeContact).filter(x=>x.dc);contacts=a;save();if(a.length){contactsImported=true;localStorage.setItem(KEYS.contactsImported,'1')}toast(a.length+' contatos importados');renderAll()}
+function appendContacts(){const a=parseTable(document.getElementById('contactImport').value).map(normalizeContact).filter(x=>x.dc);contacts.push(...a);save();if(a.length){contactsImported=true;localStorage.setItem(KEYS.contactsImported,'1')}toast(a.length+' contatos adicionados');renderAll()}
+function openConfirmModal(message,action){pendingConfirmAction=action;document.getElementById('confirmMessage').textContent=message;document.getElementById('confirmModal').classList.add('show')}
+function closeConfirmModal(){pendingConfirmAction=null;document.getElementById('confirmModal').classList.remove('show')}
+function confirmModalAction(){const action=pendingConfirmAction;closeConfirmModal();if(action)action()}
+function clearAndEditRoutes(){openConfirmModal('A exclusão do banco de rotas será permanente. Deseja realmente limpar e editar o banco de dados?',()=>{routes=[];routesImported=false;localStorage.removeItem(KEYS.routesImported);save();document.getElementById('routeImport').value='';renderAll()})}
+function clearAndEditContacts(){openConfirmModal('A exclusão do banco de contatos será permanente. Deseja realmente limpar e editar o banco de dados?',()=>{contacts=[];contactsImported=false;localStorage.removeItem(KEYS.contactsImported);save();document.getElementById('contactImport').value='';renderAll()})}
+function clearRoutes(){openConfirmModal('A exclusão do banco de rotas será permanente. Deseja realmente limpar este banco?',()=>{routes=[];routesImported=false;localStorage.removeItem(KEYS.routesImported);save();renderAll()})}
+function clearContacts(){openConfirmModal('A exclusão do banco de contatos será permanente. Deseja realmente limpar este banco?',()=>{contacts=[];contactsImported=false;localStorage.removeItem(KEYS.contactsImported);save();renderAll()})}
+
+function findContact(nodo){return contacts.find(c=>norm(c.dc)===norm(nodo))}
+function filteredRoutes(){
+ const search=norm(document.getElementById('globalSearch').value);
+ const nodo=norm(document.getElementById('fNodo')?.value||'');
+ const ciclo=norm(document.getElementById('fCiclo')?.value||'');
+ const status=norm(document.getElementById('fStatus')?.value||'');
+ const trans=norm(document.getElementById('fTrans')?.value||'');
+ return routes.filter(r=>{
+  const blob=norm([r.id,r.prefixo,r.transportadora,r.ciclo,r.status,r.nodo].join(' '));
+  return (!search||blob.includes(search))&&(!nodo||norm(r.nodo).includes(nodo))&&(!ciclo||norm(r.ciclo)===ciclo)&&(!status||norm(r.status)===status)&&(!trans||norm(r.transportadora).includes(trans));
+ })
+}
+function aggregate(rs){
+ const map={};
+ rs.forEach(r=>{
+  const k=r.nodo||'SEM NODO';
+  if(!map[k])map[k]={nodo:k,rotas:0,dias:0,volume:0,entregues:0,falhas:0,pendentes:0};
+  const x=map[k];x.rotas++;x.dias=Math.max(x.dias,num(r.dias));x.volume+=num(r.volume);x.entregues+=num(r.entregues);x.falhas+=num(r.falhas);x.pendentes+=num(r.pendentes);
+ });
+ return Object.values(map);
+}
+function sortNodes(a,b){const s=document.getElementById('fSort')?.value||'falhas'; if(s==='dias')return b.dias-a.dias;if(s==='pend')return b.pendentes-a.pendentes;if(s==='rotas')return b.rotas-a.rotas;if(s==='node')return a.nodo.localeCompare(b.nodo);return b.falhas-a.falhas}
+function renderAll(){
+ updateDatabasePanels();
+ const cycles=[...new Set(routes.map(r=>r.ciclo).filter(Boolean))].sort();
+ const sel=document.getElementById('fCiclo');if(sel){const cur=sel.value;sel.innerHTML='<option value="">Todos</option>'+cycles.map(x=>`<option>${esc(x)}</option>`).join('');if(cycles.includes(cur))sel.value=cur}
+ const rs=filteredRoutes(), ns=aggregate(rs).sort(sortNodes);
+ const total=(k)=>rs.reduce((s,r)=>s+num(r[k]),0);
+ document.getElementById('kRotas').textContent=rs.length;
+ document.getElementById('kNodos').textContent=ns.length;
+ document.getElementById('kFalhas').textContent=fmt(total('falhas'));
+ document.getElementById('kPend').textContent=fmt(total('pendentes'));
+ document.getElementById('kDias').textContent=ns.reduce((s,n)=>s+n.dias,0);
+ document.getElementById('nodeGrid').innerHTML=ns.length?ns.map(nodeCard).join(''):'<div class="empty">Nenhum dado encontrado.</div>';
+ document.getElementById('routeTable').innerHTML=rs.length?rs.map(routeRow).join(''):'<tr><td colspan="12" class="empty">Nenhuma rota encontrada.</td></tr>';
+ document.getElementById('dbRouteTable').innerHTML=routes.slice().reverse().map(r=>`<tr><td>${esc(r.id)}</td><td>${esc(r.nodo)}</td><td>${esc(r.ciclo)}</td><td>${esc(r.status)}</td><td>${r.dias}</td><td>${r.volume}</td><td>${r.entregues}</td><td>${r.falhas}</td><td>${r.pendentes}</td></tr>`).join('');
+ renderDashboard(rs,ns);
+ renderContacts();
+}
+function nodeCard(n){
+ const c=findContact(n.nodo);
+ return `<div class="nodeCard"><div class="node">${esc(n.nodo)}</div>
+ <div class="small">${n.rotas} rota(s) • ${c?esc(c.place||'contato cadastrado'):'⚠️ contato não cadastrado'}</div>
+ <div class="nodeMeta">
+ <div><span class="small">Insucessos</span><b>${fmt(n.falhas)}</b></div>
+ <div><span class="small">Dias fora</span><b>${fmt(n.dias)}</b></div>
+ <div><span class="small">Pendentes</span><b>${fmt(n.pendentes)}</b></div>
+ <div><span class="small">Volume</span><b>${fmt(n.volume)}</b></div>
+ </div>
+ <div style="margin-top:10px;font-size:12px"><b>Contato:</b> ${c?`${esc(c.responsavel||'Não informado')} • ${esc(c.telefone||'Sem telefone')}`:'Não cadastrado'}</div>
+ </div>`
+}
+function routeRow(r){
+ const c=findContact(r.nodo);const st=norm(r.status);
+ return `<tr><td>${esc(r.id)}</td><td>${esc(r.prefixo)}</td><td>${esc(r.transportadora)}</td><td>${esc(r.ciclo)}</td><td><span class="badge ${st==='close'?'badge-green':st.includes('return')?'badge-orange':'badge-blue'}">${esc(r.status)}</span></td><td><b>${esc(r.nodo)}</b></td><td>${r.dias}</td><td>${r.volume}</td><td>${r.entregues}</td><td><span class="badge ${r.falhas>0?'badge-red':'badge-green'}">${r.falhas}</span></td><td>${r.pendentes}</td><td>${c?`<b>${esc(c.responsavel||'-')}</b><br><span class="small">${esc(c.telefone||'-')}</span>`:'<span class="badge badge-red">Sem contato</span>'}</td></tr>`
+}
+function renderDashboard(rs,ns){
+ const all=routes;
+ const total=(k)=>all.reduce((s,r)=>s+num(r[k]),0);
+ document.getElementById('dRotas').textContent=all.length;document.getElementById('dVol').textContent=fmt(total('volume'));document.getElementById('dEnt').textContent=fmt(total('entregues'));document.getElementById('dFal').textContent=fmt(total('falhas'));document.getElementById('dPen').textContent=fmt(total('pendentes'));
+ const agg=aggregate(all).sort((a,b)=>b.falhas-a.falhas);
+ document.getElementById('reportNodes').innerHTML=agg.length?agg.slice(0,9).map(nodeCard).join(''):'<div class="empty">Sem dados para o report.</div>';
+ document.getElementById('reportContacts').innerHTML=agg.map(n=>{const c=findContact(n.nodo);return `<tr><td><b>${esc(n.nodo)}</b></td><td>${esc(c?.responsavel||'Não cadastrado')}</td><td>${esc(c?.telefone||'-')}</td><td>${esc([c?.endereco,c?.bairro].filter(Boolean).join(' • ')||'-')}</td><td>${esc(c?.sabado||'-')}</td><td>${n.rotas}</td><td>${n.falhas}</td><td>${n.dias}</td></tr>`}).join('');
+ document.getElementById('reportDate').textContent='Gerado em '+new Date().toLocaleString('pt-BR');
+}
+function renderContacts(){
+ const q=norm(document.getElementById('contactSearch')?.value||'');
+ const arr=contacts.map((c,i)=>({...c,_i:i})).filter(c=>!q||norm([c.dc,c.place,c.responsavel,c.telefone,c.endereco,c.bairro].join(' ')).includes(q));
+ document.getElementById('contactList').innerHTML=arr.length?arr.map(c=>`<div class="contactCard"><div class="contactMain"><strong>${esc(c.dc)}</strong> ${c.place?`• ${esc(c.place)}`:''}<div>${esc(c.responsavel||'Responsável não informado')} • ${esc(c.telefone||'Sem telefone')}</div><div>${esc([c.endereco,c.complemento,c.bairro,c.cep].filter(Boolean).join(' • '))}</div><div>Modal: ${esc(c.modal||'-')} • Sábado: ${esc(c.sabado||'-')}</div></div><div class="contactActions"><button class="btn btn-light" onclick="editContact(${c._i})">Editar</button><button class="btn btn-danger" onclick="deleteContact(${c._i})">Excluir</button></div></div>`).join(''):'<div class="empty">Nenhum contato cadastrado.</div>';
+}
+function openContact(i=null){
+ document.getElementById('contactModal').classList.add('show');document.getElementById('editIndex').value=i??'';
+ document.getElementById('modalTitle').textContent=i===null?'Novo contato':'Editar contato';
+ const c=i===null?{}:contacts[i];
+ [['cPlace','place'],['cDC','dc'],['cCep','cep'],['cModal','modal'],['cEndereco','endereco'],['cComplemento','complemento'],['cBairro','bairro'],['cTelefone','telefone'],['cResponsavel','responsavel'],['cSabado','sabado']].forEach(([id,k])=>document.getElementById(id).value=c[k]||'');
+}
+function closeModal(){document.getElementById('contactModal').classList.remove('show')}
+function editContact(i){openContact(i)}
+function saveContact(){
+ const c={place:v('cPlace'),dc:v('cDC'),cep:v('cCep'),modal:v('cModal'),endereco:v('cEndereco'),complemento:v('cComplemento'),bairro:v('cBairro'),telefone:v('cTelefone'),responsavel:v('cResponsavel'),sabado:v('cSabado')};
+ if(!c.dc){toast('Informe o DC / Nodo');return}
+ const i=document.getElementById('editIndex').value;if(i==='')contacts.push(c);else contacts[Number(i)]=c;
+ save();closeModal();renderAll();toast('Contato salvo')}
+function deleteContact(i){openConfirmModal('A exclusão deste contato será permanente. Deseja realmente excluir?',()=>{contacts.splice(i,1);save();renderAll();toast('Contato excluído')})}
+function v(id){return document.getElementById(id).value.trim()}
+function fmt(n){return Number(n||0).toLocaleString('pt-BR')}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+
+function backup(){
+ const blob=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),routes,contacts},null,2)],{type:'application/json'});
+ downloadBlob(blob,'SSP21_MOOCA_BACKUP_'+dateFile()+'.json');toast('Backup gerado')}
+function restore(e){
+ const f=e.target.files[0];if(!f)return;const r=new FileReader();
+ r.onload=()=>{try{const d=JSON.parse(r.result);routes=Array.isArray(d.routes)?d.routes:[];contacts=Array.isArray(d.contacts)?d.contacts:[];save();renderAll();toast('Backup restaurado')}catch(err){toast('Arquivo inválido')}};r.readAsText(f)
+}
+function exportCSV(type){
+ const arr=type==='routes'?routes:contacts;if(!arr.length){toast('Não há dados para exportar');return}
+ const headers=Object.keys(arr[0]).filter(k=>k!=='raw');
+ const csv=[headers.join(';'),...arr.map(o=>headers.map(k=>`"${String(o[k]??'').replace(/"/g,'""')}"`).join(';'))].join('\n');
+ downloadBlob(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),'SSP21_'+type+'_'+dateFile()+'.csv')
+}
+function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function dateFile(){return new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}
+function printReport(){document.querySelectorAll('.page').forEach(x=>x.classList.remove('printPage'));document.getElementById('page-dashboard').classList.add('printPage');window.print();setTimeout(()=>document.getElementById('page-dashboard').classList.remove('printPage'),1000)}
+async function captureReport(){
+ const el=document.getElementById('reportArea');
+ if(!window.html2canvas){toast('Captura indisponível offline. Use Imprimir / PDF.');return}
+ try{const canvas=await html2canvas(el,{scale:2,backgroundColor:'#fff',useCORS:true});canvas.toBlob(b=>downloadBlob(b,'REPORT_SSP21_MOOCA_'+dateFile()+'.png'))}catch(e){toast('Não foi possível capturar o report')}
+}
+
+// Exemplo mínimo baseado nas estruturas mostradas nas planilhas; remova se quiser começar zerado.
+if(!routes.length){
+ routes=[
+  normalizeRoute({id_rota:'439930128',prefixo_rota:'104',transportadora:'Envios Extra',ciclo:'AM1',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1567',dias_desde_saida:'7',spr_volume:'39',entregues:'39',falhas_de_entrega:'0',pendentes:'0'}),
+  normalizeRoute({id_rota:'439982411',prefixo_rota:'69',transportadora:'Flight Cargo',ciclo:'AM1',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP401',dias_desde_saida:'7',spr_volume:'62',entregues:'60',falhas_de_entrega:'2',pendentes:'0'}),
+  normalizeRoute({id_rota:'440044935',prefixo_rota:'46',transportadora:'Envios Extra',ciclo:'AM1',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1536',dias_desde_saida:'7',spr_volume:'25',entregues:'25',falhas_de_entrega:'0',pendentes:'0'}),
+  normalizeRoute({id_rota:'440376987',prefixo_rota:'312',transportadora:'Agencias Kangu',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRDSP14138',dias_desde_saida:'7',spr_volume:'73',entregues:'68',falhas_de_entrega:'5',pendentes:'0'}),
+  normalizeRoute({id_rota:'440377001',prefixo_rota:'310',transportadora:'Agencias Kangu',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRDSP14100',dias_desde_saida:'7',spr_volume:'70',entregues:'61',falhas_de_entrega:'9',pendentes:'0'}),
+  normalizeRoute({id_rota:'440377043',prefixo_rota:'332',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1091',dias_desde_saida:'7',spr_volume:'28',entregues:'28',falhas_de_entrega:'0',pendentes:'0'}),
+  normalizeRoute({id_rota:'440377050',prefixo_rota:'335',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1091',dias_desde_saida:'7',spr_volume:'52',entregues:'52',falhas_de_entrega:'0',pendentes:'0'}),
+  normalizeRoute({id_rota:'440377064',prefixo_rota:'337',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1091',dias_desde_saida:'7',spr_volume:'56',entregues:'52',falhas_de_entrega:'4',pendentes:'0'}),
+  normalizeRoute({id_rota:'440377071',prefixo_rota:'334',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1091',dias_desde_saida:'7',spr_volume:'53',entregues:'52',falhas_de_entrega:'1',pendentes:'0'}),
+  normalizeRoute({id_rota:'440377078',prefixo_rota:'333',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1091',dias_desde_saida:'7',spr_volume:'62',entregues:'60',falhas_de_entrega:'2',pendentes:'0'}),
+  normalizeRoute({id_rota:'440377120',prefixo_rota:'324',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1567',dias_desde_saida:'7',spr_volume:'27',entregues:'27',falhas_de_entrega:'0',pendentes:'0'}),
+  normalizeRoute({id_rota:'440377141',prefixo_rota:'321',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1567',dias_desde_saida:'7',spr_volume:'52',entregues:'52',falhas_de_entrega:'0',pendentes:'0'}),
+  normalizeRoute({id_rota:'440377169',prefixo_rota:'322',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1567',dias_desde_saida:'7',spr_volume:'51',entregues:'51',falhas_de_entrega:'0',pendentes:'0'}),
+  normalizeRoute({id_rota:'440377191',prefixo_rota:'327',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1567',dias_desde_saida:'7',spr_volume:'45',entregues:'45',falhas_de_entrega:'0',pendentes:'0'})
+ ];
+ save();
+}
+if(!contacts.length){
+ contacts=[
+  normalizeContact({place:'LOJA KANGU B',dc:'BRDSP00145',cep:'1205000',modal:'Multimodal',endereco:'AVENIDA RIO BRANCO 301',bairro:'Santa Efigênia',telefone:'11 95443-0307',responsavel:'Marco',sabado:'Não'}),
+  normalizeContact({place:'INOVA SANCHEZ',dc:'BRNSP1091',modal:'Multimodal',endereco:'RUA JAVARI 134',bairro:'MOOCA',telefone:'551198180170',responsavel:'JENNIFER SANCHEZ'}),
+  normalizeContact({place:'LOJAS ECODE',dc:'BRNSP1026',modal:'Multimodal',endereco:'AVENIDA DOS BANDEIRANTES',bairro:'PLANALTO PAULISTA',telefone:'551199885800',responsavel:'CAMILA AMARAL'}),
+  normalizeContact({place:'ESTOFADOS M',dc:'BRDSP0170',cep:'3179010',modal:'DELIVERY CELL',endereco:'RUA ITAMARACA 431',bairro:'Belenzinho',telefone:'11 91639-7777',responsavel:'Segunda a sexta das 9 às 16h. - Sábado das 9 às 11h.'})
+ ];
+ save();
+}
+renderAll();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</body>
+</html>
