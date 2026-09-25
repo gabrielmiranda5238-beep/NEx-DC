@@ -442,38 +442,4 @@ async function captureReport(){
  if(!window.html2canvas){toast('Captura indisponível offline. Use Imprimir / PDF.');return}
  try{const canvas=await html2canvas(el,{scale:2,backgroundColor:'#fff',useCORS:true});canvas.toBlob(b=>downloadBlob(b,'REPORT_SSP21_MOOCA_'+dateFile()+'.png'))}catch(e){toast('Não foi possível capturar o report')}
 }
-
-// Exemplo mínimo baseado nas estruturas mostradas nas planilhas; remova se quiser começar zerado.
-if(!routes.length){
- routes=[
-  normalizeRoute({id_rota:'439930128',prefixo_rota:'104',transportadora:'Envios Extra',ciclo:'AM1',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1567',dias_desde_saida:'7',spr_volume:'39',entregues:'39',falhas_de_entrega:'0',pendentes:'0'}),
-  normalizeRoute({id_rota:'439982411',prefixo_rota:'69',transportadora:'Flight Cargo',ciclo:'AM1',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP401',dias_desde_saida:'7',spr_volume:'62',entregues:'60',falhas_de_entrega:'2',pendentes:'0'}),
-  normalizeRoute({id_rota:'440044935',prefixo_rota:'46',transportadora:'Envios Extra',ciclo:'AM1',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1536',dias_desde_saida:'7',spr_volume:'25',entregues:'25',falhas_de_entrega:'0',pendentes:'0'}),
-  normalizeRoute({id_rota:'440376987',prefixo_rota:'312',transportadora:'Agencias Kangu',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRDSP14138',dias_desde_saida:'7',spr_volume:'73',entregues:'68',falhas_de_entrega:'5',pendentes:'0'}),
-  normalizeRoute({id_rota:'440377001',prefixo_rota:'310',transportadora:'Agencias Kangu',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRDSP14100',dias_desde_saida:'7',spr_volume:'70',entregues:'61',falhas_de_entrega:'9',pendentes:'0'}),
-  normalizeRoute({id_rota:'440377043',prefixo_rota:'332',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1091',dias_desde_saida:'7',spr_volume:'28',entregues:'28',falhas_de_entrega:'0',pendentes:'0'}),
-  normalizeRoute({id_rota:'440377050',prefixo_rota:'335',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1091',dias_desde_saida:'7',spr_volume:'52',entregues:'52',falhas_de_entrega:'0',pendentes:'0'}),
-  normalizeRoute({id_rota:'440377064',prefixo_rota:'337',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1091',dias_desde_saida:'7',spr_volume:'56',entregues:'52',falhas_de_entrega:'4',pendentes:'0'}),
-  normalizeRoute({id_rota:'440377071',prefixo_rota:'334',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1091',dias_desde_saida:'7',spr_volume:'53',entregues:'52',falhas_de_entrega:'1',pendentes:'0'}),
-  normalizeRoute({id_rota:'440377078',prefixo_rota:'333',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1091',dias_desde_saida:'7',spr_volume:'62',entregues:'60',falhas_de_entrega:'2',pendentes:'0'}),
-  normalizeRoute({id_rota:'440377120',prefixo_rota:'324',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1567',dias_desde_saida:'7',spr_volume:'27',entregues:'27',falhas_de_entrega:'0',pendentes:'0'}),
-  normalizeRoute({id_rota:'440377141',prefixo_rota:'321',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1567',dias_desde_saida:'7',spr_volume:'52',entregues:'52',falhas_de_entrega:'0',pendentes:'0'}),
-  normalizeRoute({id_rota:'440377169',prefixo_rota:'322',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1567',dias_desde_saida:'7',spr_volume:'51',entregues:'51',falhas_de_entrega:'0',pendentes:'0'}),
-  normalizeRoute({id_rota:'440377191',prefixo_rota:'327',transportadora:'Envios Extra',ciclo:'CHP',status_rota:'close',facility_orig:'SSP21',nodo_destino:'BRNSP1567',dias_desde_saida:'7',spr_volume:'45',entregues:'45',falhas_de_entrega:'0',pendentes:'0'})
- ];
- save();
-}
-if(!contacts.length){
- contacts=[
-  normalizeContact({place:'LOJA KANGU B',dc:'BRDSP00145',cep:'1205000',modal:'Multimodal',endereco:'AVENIDA RIO BRANCO 301',bairro:'Santa Efigênia',telefone:'11 95443-0307',responsavel:'Marco',sabado:'Não'}),
-  normalizeContact({place:'INOVA SANCHEZ',dc:'BRNSP1091',modal:'Multimodal',endereco:'RUA JAVARI 134',bairro:'MOOCA',telefone:'551198180170',responsavel:'JENNIFER SANCHEZ'}),
-  normalizeContact({place:'LOJAS ECODE',dc:'BRNSP1026',modal:'Multimodal',endereco:'AVENIDA DOS BANDEIRANTES',bairro:'PLANALTO PAULISTA',telefone:'551199885800',responsavel:'CAMILA AMARAL'}),
-  normalizeContact({place:'ESTOFADOS M',dc:'BRDSP0170',cep:'3179010',modal:'DELIVERY CELL',endereco:'RUA ITAMARACA 431',bairro:'Belenzinho',telefone:'11 91639-7777',responsavel:'Segunda a sexta das 9 às 16h. - Sábado das 9 às 11h.'})
- ];
- save();
-}
-renderAll();
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-</body>
 </html>
