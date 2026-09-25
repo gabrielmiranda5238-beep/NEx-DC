@@ -442,4 +442,7 @@ async function captureReport(){
  if(!window.html2canvas){toast('Captura indisponível offline. Use Imprimir / PDF.');return}
  try{const canvas=await html2canvas(el,{scale:2,backgroundColor:'#fff',useCORS:true});canvas.toBlob(b=>downloadBlob(b,'REPORT_SSP21_MOOCA_'+dateFile()+'.png'))}catch(e){toast('Não foi possível capturar o report')}
 }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</body>
 </html>
