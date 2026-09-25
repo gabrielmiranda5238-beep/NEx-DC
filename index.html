@@ -186,6 +186,15 @@ textarea{min-height:180px;resize:vertical}
   <div class="pageTitle"><div><h1>Banco de Contatos dos Nodos</h1><p>Importação massiva, cadastro individual, edição e exclusão.</p></div>
     <button class="btn btn-primary" onclick="openContact()">+ Novo contato</button>
   </div>
+  <div class="panel noPrint" id="adminPanel" style="display:none">
+    <h3>🔐 Login admin</h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+      <div class="field" style="min-width:220px"><label>Email admin</label><input id="adminEmail" placeholder="admin@empresa.com"></div>
+      <div class="field" style="min-width:220px"><label>Senha</label><input id="adminPassword" type="password" placeholder="Senha"></div>
+      <button class="btn btn-primary" onclick="loginAdmin()">Entrar</button>
+      <button class="btn btn-light" onclick="logoutAdmin()">Sair</button>
+    </div>
+  </div>
   <div class="panel noPrint" id="contactImportPanel">
     <div class="field"><label>Importação massiva</label><textarea id="contactImport" placeholder="94	PLACE	DC	CEP	Modal	Endereço	Complemento	Bairro	Telefone	Responsável	Opera de sábado?"></textarea></div>
     <div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-primary" onclick="importContacts()">Importar contatos</button><button class="btn btn-light" onclick="appendContacts()">Adicionar aos contatos</button><button class="btn btn-danger" onclick="clearContacts()">Limpar contatos</button></div>
@@ -255,6 +264,37 @@ let contacts=JSON.parse(localStorage.getItem(KEYS.contacts)||'[]');
 let routesImported=localStorage.getItem(KEYS.routesImported)==='1';
 let contactsImported=localStorage.getItem(KEYS.contactsImported)==='1';
 let pendingConfirmAction=null;
+
+function adicionarContatoCodigo(contato){
+  const c=normalizeContact(contato||{});
+  if(!c.dc){
+    console.warn('Contato inválido: informe o campo dc/nodo.');
+    return null;
+  }
+  const jaExiste=contacts.some(item=>norm(item.dc)===norm(c.dc));
+  if(jaExiste){
+    console.warn('Contato já existente para o nodo:', c.dc);
+    return null;
+  }
+  contacts.push(c);
+  save();
+  renderAll();
+  return c;
+}
+function adicionarContatosCodigo(lista){
+  const itens=Array.isArray(lista)?lista:[];
+  const adicionados=[];
+  itens.forEach(item=>{
+    const c=adicionarContatoCodigo(item);
+    if(c)adicionados.push(c);
+  });
+  return adicionados;
+}
+
+// Exemplo de uso no próprio código raiz:
+// adicionarContatosCodigo([
+//   { place:'LOJA EXEMPLO', dc:'BRNSP9999', cep:'01000-000', modal:'Multimodal', endereco:'Rua Exemplo, 123', complemento:'', bairro:'Centro', telefone:'11 99999-9999', responsavel:'Fulano', sabado:'Sim' }
+// ]);
 
 const norm=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
 const num=s=>{let x=String(s??'').replace(/[^0-9,.-]/g,'').replace(',','.'); let n=parseFloat(x); return isNaN(n)?0:n};
@@ -442,6 +482,209 @@ async function captureReport(){
  if(!window.html2canvas){toast('Captura indisponível offline. Use Imprimir / PDF.');return}
  try{const canvas=await html2canvas(el,{scale:2,backgroundColor:'#fff',useCORS:true});canvas.toBlob(b=>downloadBlob(b,'REPORT_SSP21_MOOCA_'+dateFile()+'.png'))}catch(e){toast('Não foi possível capturar o report')}
 }
+
+renderAll();
+</script>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+  const SUPABASE_URL = 'https://SEU_PROJETO.supabase.co';
+  const SUPABASE_ANON_KEY = 'SUA_CHAVE_ANONIMA';
+  const hasSupabaseConfig = !!SUPABASE_URL && SUPABASE_URL !== 'https://SEU_PROJETO.supabase.co' && !!SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== 'SUA_CHAVE_ANONIMA';
+
+  const supabase = hasSupabaseConfig ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true }
+  }) : null;
+
+  let adminLoggedIn = false;
+  let sharedSyncDone = false;
+
+  function isAdminActive() {
+    return adminLoggedIn && !!supabase;
+  }
+
+  async function syncSharedContacts() {
+    if (!supabase) return;
+
+    const { data, error } = await supabase.from('contacts').select('*');
+    if (error) {
+      console.error('Erro ao carregar contatos compartilhados:', error);
+      return;
+    }
+
+    if (!Array.isArray(data)) return;
+
+    const merged = new Map();
+    contacts.forEach(item => {
+      const key = String(item.dc || '').trim().toLowerCase();
+      if (key) merged.set(key, { ...item });
+    });z
+
+    data.forEach(item => {
+      const key = String(item.dc || '').trim().toLowerCase();
+      if (key) merged.set(key, { ...item });
+    });
+
+    contacts = Array.from(merged.values());
+    save();
+    renderAll();
+    sharedSyncDone = true;
+  }
+
+  async function persistSharedContact(contact) {
+    if (!supabase) return false;
+
+    const item = {
+      dc: contact.dc,
+      place: contact.place || '',
+      cep: contact.cep || '',
+      modal: contact.modal || '',
+      endereco: contact.endereco || '',
+      complemento: contact.complemento || '',
+      bairro: contact.bairro || '',
+      telefone: contact.telefone || '',
+      responsavel: contact.responsavel || '',
+      sabado: contact.sabado || '',
+      created_at: new Date().toISOString()
+    };
+
+    const { error } = await supabase.from('contacts').upsert([item], { onConflict: 'dc' });
+    if (error) {
+      console.error(error);
+      return false;
+    }
+
+    await syncSharedContacts();
+    return true;
+  }
+
+  async function deleteSharedContact(dc) {
+    if (!supabase || !dc) return false;
+
+    const { error } = await supabase.from('contacts').delete().eq('dc', dc);
+    if (error) {
+      console.error(error);
+      return false;
+    }
+
+    await syncSharedContacts();
+    return true;
+  }
+
+  async function loginAdmin() {
+    if (!supabase) {
+      toast('Supabase não configurado. Coloque URL e chave do projeto antes de usar login admin.');
+      return;
+    }
+
+    const email = document.getElementById('adminEmail')?.value.trim();
+    const password = document.getElementById('adminPassword')?.value;
+
+    if (!email || !password) {
+      toast('Informe email e senha do admin.');
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      console.error(error);
+      toast('Login de admin inválido.');
+      return;
+    }
+
+    adminLoggedIn = !!data?.user;
+    document.getElementById('adminPanel').style.display = adminLoggedIn ? 'block' : 'none';
+    toast(adminLoggedIn ? 'Admin logado.' : 'Login não realizado.');
+    await syncSharedContacts();
+  }
+
+  async function logoutAdmin() {
+    if (!supabase) return;
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error(error);
+      toast('Erro ao sair.');
+      return;
+    }
+
+    adminLoggedIn = false;
+    document.getElementById('adminPanel').style.display = 'block';
+    toast('Logout realizado.');
+    await syncSharedContacts();
+  }
+
+  const originalSaveContact = window.saveContact;
+  window.saveContact = async function() {
+    const c = {
+      place: document.getElementById('cPlace')?.value.trim() || '',
+      dc: document.getElementById('cDC')?.value.trim() || '',
+      cep: document.getElementById('cCep')?.value.trim() || '',
+      modal: document.getElementById('cModal')?.value.trim() || '',
+      endereco: document.getElementById('cEndereco')?.value.trim() || '',
+      complemento: document.getElementById('cComplemento')?.value.trim() || '',
+      bairro: document.getElementById('cBairro')?.value.trim() || '',
+      telefone: document.getElementById('cTelefone')?.value.trim() || '',
+      responsavel: document.getElementById('cResponsavel')?.value.trim() || '',
+      sabado: document.getElementById('cSabado')?.value.trim() || ''
+    };
+
+    if (!c.dc) {
+      toast('Informe o DC / Nodo');
+      return;
+    }
+
+    if (isAdminActive()) {
+      const ok = await persistSharedContact(c);
+      if (!ok) {
+        toast('Erro ao salvar no banco compartilhado.');
+        return;
+      }
+      closeModal();
+      renderAll();
+      toast('Contato salvo e compartilhado.');
+      return;
+    }
+
+    if (originalSaveContact) originalSaveContact();
+  };
+
+  const originalDeleteContact = window.deleteContact;
+  window.deleteContact = async function(i) {
+    const item = contacts[i];
+    if (!item) return;
+
+    if (isAdminActive()) {
+      const ok = await deleteSharedContact(item.dc);
+      if (!ok) {
+        toast('Erro ao excluir contato compartilhado.');
+        return;
+      }
+
+      contacts.splice(i, 1);
+      save();
+      renderAll();
+      toast('Contato excluído.');
+      return;
+    }
+
+    if (originalDeleteContact) originalDeleteContact(i);
+  };
+
+  window.loginAdmin = loginAdmin;
+  window.logoutAdmin = logoutAdmin;
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', async () => {
+      const panel = document.getElementById('adminPanel');
+      if (panel) panel.style.display = hasSupabaseConfig ? 'block' : 'none';
+      if (hasSupabaseConfig) await syncSharedContacts();
+    });
+  } else {
+    const panel = document.getElementById('adminPanel');
+    if (panel) panel.style.display = hasSupabaseConfig ? 'block' : 'none';
+    if (hasSupabaseConfig) syncSharedContacts();
+  }
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </body>
